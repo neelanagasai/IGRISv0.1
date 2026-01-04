@@ -110,6 +110,13 @@ Users are responsible for ethical and legal use.
 
 ---
 
+## Contribution
+
+Feel Free to contribute to this project through forks and pull requests.
+
+---
+
+
 ## Status
 
 Early-stage project (v0.1).

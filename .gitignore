@@ -1,0 +1,4 @@
+##virtual environment files
+.venv/
+##contains the downloaded and trained machine learning models
+/models

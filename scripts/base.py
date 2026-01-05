@@ -21,10 +21,10 @@ class ModelConfig:
     model_path: Path
     context_size: int = 2048
     threads: int = 8
+    max_tokens: int = 512
     temperature: float = 0.7
     top_p: float = 0.95
     repeat_penalty: float = 1.1
-    timeout: int = 120
     extra_args: list[str] = field(default_factory=list)
 
 
@@ -43,15 +43,14 @@ MODELS = {
         name="deepseek",
         model_path=ROOT / "models/deepseek-coder-6.7b-instruct-q4_k_m.gguf",
         context_size=4096,
+        max_tokens=1024,
         temperature=0.2,
-        extra_args=[
-            "--reverse-prompt", "```"
-        ],
     ),
     "qwen": ModelConfig(
         name="qwen",
         model_path=ROOT / "models/qwen2.5-3b-instruct-q4_k_m.gguf",
-        context_size=2048,
+        context_size=4096,
+        max_tokens=1024,
         temperature=0.7,
     ),
 }
@@ -76,7 +75,7 @@ def build_command(config: ModelConfig, prompt: str) -> list[str]:
         "--no-display-prompt",
         "-c", str(config.context_size),
         "-t", str(config.threads),
-        "-n", "256", 
+        "-n", str(config.max_tokens), 
         "--temp", str(config.temperature),
         "--top-p", str(config.top_p),
         "--repeat-penalty", str(config.repeat_penalty),
@@ -89,7 +88,6 @@ def run_inference(
     config: ModelConfig,
     prompt: str,
     capture_output: bool = True,
-    timeout: Optional[int] = None,
 ) -> subprocess.CompletedProcess:
     """
     Run inference with the given model config and prompt.
@@ -109,7 +107,6 @@ def run_inference(
             cmd,
             capture_output=capture_output,
             text=True,
-            timeout=timeout or config.timeout,
             check=False,
         )
 
@@ -121,11 +118,6 @@ def run_inference(
             )
 
         return result
-
-    except subprocess.TimeoutExpired as e:
-        raise TimeoutError(
-            f"[{config.name}] Inference timed out after {timeout or config.timeout}s"
-        ) from e
 
     except OSError as e:
         # Covers execution errors like permissions, binary failure, etc.

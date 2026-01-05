@@ -1,16 +1,12 @@
-from base import MODELS, run_inference, get_output
+from base import ROOT, MODELS, load_file, run_inference, get_output
 
-SYSTEM_CONTEXT = """
-You are a coding-focused assistant.
-Respond only with correct, complete, and functional code.
-Avoid explanations unless explicitly requested.
-Prefer clarity, correctness, and simplicity.
-""".strip()
+SYSTEM_PATH = ROOT / "prompts/DEEPSEEK_SYSTEM.md"
 
 
 def run_deepseek(task: str) -> str:
     """Run DeepSeek for code generation tasks."""
-    prompt = f"{SYSTEM_CONTEXT}\n\nTask:\n{task}\n\nOutput:"
+    system_context = load_file(SYSTEM_PATH)
+    prompt = f"{system_context}\n\nTask:\n{task}\n\nOutput:"
     result = run_inference(MODELS["deepseek"], prompt)
     return get_output(result)
 

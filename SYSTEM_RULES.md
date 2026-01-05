@@ -1,5 +1,4 @@
 # Global Operating Rules
-
 These rules apply to all tasks, topics, and personalities.
 
 ## Core Behavior

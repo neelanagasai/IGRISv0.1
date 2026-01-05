@@ -1,8 +1,8 @@
 import sys
 from base import ROOT, MODELS, load_file, run_inference, get_output
 
-PERSONA_PATH = ROOT / "PERSONA.md"
-TEMPLATE_PATH = ROOT / "prompts/face_prompt.txt"
+PERSONA_PATH = ROOT / "prompts/PERSONA.md"
+TEMPLATE_PATH = ROOT / "prompts/FACE_SYSTEM.md"
 PRIMER = "Concise, professional, neutral assistant."
 
 
@@ -13,7 +13,7 @@ def run_face(user_input: str) -> str:
         primer=PRIMER,
         user_input=user_input
     )
-    result = run_inference(MODELS["qwen"], prompt)
+    result = run_inference(MODELS["qwen"], prompt) 
     return get_output(result)
 
 

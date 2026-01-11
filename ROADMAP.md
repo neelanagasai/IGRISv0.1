@@ -1,163 +1,117 @@
-# IGRIS – 30-Day Development Roadmap (v0.1)
+# IGRIS – Development Roadmap
 
-This roadmap reflects the final architecture:
+## Current Architecture (v1.0)
 
-FACE MODEL → QWEN (intent + confidence) →  
-- MISTRAL (recon / intelligence)  
-- DEEPSEEK (dirty coding / heavy logic)
+```
+User Query → Fast Router (heuristic) → Qwen 2.5 3B (chat) 
+                                     → DeepSeek Coder 6.7B (code)
+```
 
-A confidence gate is used to prevent misrouting.
-
----
-
-## WEEK 1 — FOUNDATION (Days 1–7)
-**Goal:** Stable base, single responsibility per component.
-
-### Day 1–2
-- Finalize repository structure
-- Lock:
-  - SYSTEM_RULES.md
-  - PERSONA.md (IGRIS)
-  - task_context.txt
-
-### Day 3
-- Select and integrate **Face model**
-- Face handles:
-  - user interaction
-  - formatting
-  - personality
-- No heavy reasoning here
-
-### Day 4–5
-- Integrate **Mistral** as internal model
-- Mistral outputs:
-  - `intent`
-  - `confidence` (0.0 – 1.0)
-
-### Day 6
-- Implement **confidence gate**
-  - confidence < 0.7 → ask clarification
-  - confidence ≥ 0.7 → route
-
-### Day 7
-- End-to-end test:
-  - Face → Mistral → Face
-- No DeepSeek yet
+**Optimized 2-model system** — No LLM-based routing overhead.
 
 ---
 
-## WEEK 2 — ROUTING & CONTROL (Days 8–14)
-**Goal:** Correct routing, zero ambiguity.
+## ✅ Phase 1 — Foundation (COMPLETED)
 
-### Day 8
-- Define intent schema:
-  - CHAT
-  - EXPLAIN
-  - RECON
-  - INTEL
-  - CODE_DIRTY
-
-### Day 9–10
-- Routing logic:
-  - RECON / INTEL → Mistral
-  - CODE_DIRTY → DeepSeek
-
-### Day 11
-- Add fallback rules:
-  - model failure handling
-  - partial responses with warnings
-
-### Day 12
-- Logging:
-  - intent
-  - confidence
-  - selected model
-  - execution time
-
-### Day 13–14
-- Stress-test misclassification
-- Tune confidence threshold
+- [x] Repository structure finalized
+- [x] System prompts created (FACE_SYSTEM.md, DEEPSEEK_SYSTEM.md)
+- [x] llama.cpp integration (HTTP server mode)
+- [x] Model configuration system (base.py)
+- [x] Basic orchestration working
 
 ---
 
-## WEEK 3 — EXECUTION & SAFETY (Days 15–21)
-**Goal:** Heavy work isolated, face remains fast.
+## ✅ Phase 2 — Multi-Model Architecture (COMPLETED)
 
-### Day 15
-- Integrate **DeepSeek-Coder**
-- CODE-only context, no persona
-
-### Day 16
-- Normalize outputs:
-  - strip personality from DeepSeek
-  - Face formats final response
-
-### Day 17
-- Add execution limits:
-  - timeouts
-  - memory guards
-
-### Day 18
-- Red-team task testing (lab / legal only)
-- Script generation, automation, parsing
-
-### Day 19–20
-- Memory design:
-  - short-term (session context)
-  - long-term (summaries / notes)
-
-### Day 21
-- Full pipeline test:
-  Face → Mistral → DeepSeek → Face
+- [x] Qwen 2.5 3B integration (general chat)
+- [x] DeepSeek Coder 6.7B integration (code tasks)
+- [x] Fast keyword-based routing (no LLM overhead)
+- [x] ChatML prompt formatting
+- [x] Conversation history management (4-turn context)
+- [x] Model health checks
 
 ---
 
-## WEEK 4 — HARDENING & POLISH (Days 22–30)
-**Goal:** Stable, presentable, extensible system.
+## ✅ Phase 3 — Performance Optimization (COMPLETED)
 
-### Day 22
-- Improve clarification UX (confidence gate)
-
-### Day 23
-- Error messaging:
-  - clear
-  - neutral
-  - non-chatty
-
-### Day 24
-- Performance tuning:
-  - context trimming
-  - batch sizing
-
-### Day 25
-- Model hot-swap configuration
-- Face / Mistral / DeepSeek interchangeable
-
-### Day 26
-- Security review:
-  - prompt injection attempts
-  - rule bypass tests
-
-### Day 27
-- Documentation:
-  - architecture explanation
-  - routing flow
-
-### Day 28
-- Tag release: **v0.1**
-
-### Day 29–30
-- Buffer days:
-  - bug fixes
-  - refactors
-- Decide next phase:
-  - server mode
-  - cloud deployment
-  - fine-tuning
+- [x] Streaming output (SSE-based)
+- [x] Response caching (MD5-based, 50 entries)
+- [x] Syntax highlighting (Rich library)
+- [x] Session logging (JSONL format)
+- [x] Statistics tracking
+- [x] Reset command (/reset)
 
 ---
 
-## Notes
-- IGRIS is a **system**, not a single model.
-- Personality lives only in the Face model.
-- All execution models are replaceable.
+## ✅ Phase 4 — Code Quality (COMPLETED)
+
+- [x] Test suite (14 tests passing)
+- [x] Error handling improvements
+- [x] Import fixes (relative/absolute)
+- [x] Documentation (README v1.0)
+- [x] Architecture consolidation (removed 3-model overhead)
+
+---
+
+## 🔄 Phase 5 — Hardening (IN PROGRESS)
+
+- [ ] Prompt injection testing
+- [ ] Rule bypass attempts
+- [ ] Context overflow handling
+- [ ] Timeout tuning per model
+- [ ] Memory usage profiling
+
+---
+
+## 📋 Phase 6 — Advanced Features (PLANNED)
+
+- [ ] Long-term memory (session summaries)
+- [ ] Model hot-swap configuration
+- [ ] Custom routing rules (user-configurable)
+- [ ] Web UI interface
+- [ ] API server mode
+- [ ] Multi-turn code editing context
+
+---
+
+## 📋 Phase 7 — Deployment (PLANNED)
+
+- [ ] Docker containerization
+- [ ] GPU optimization (CUDA/ROCm)
+- [ ] Systemd service files
+- [ ] Configuration file (YAML/TOML)
+- [ ] CLI arguments
+
+---
+
+## 📋 Phase 8 — Extensions (FUTURE)
+
+- [ ] Tool/function calling
+- [ ] RAG integration (local docs)
+- [ ] Voice input/output
+- [ ] Plugin system
+- [ ] Fine-tuning pipeline
+
+---
+
+## Architecture Notes
+
+| Component | Model | Port | Purpose |
+|-----------|-------|------|---------|
+| Chat | Qwen 2.5 3B | 8001 | General conversation, explanations |
+| Code | DeepSeek Coder 6.7B | 8002 | Code generation, debugging |
+
+**Design Principles:**
+- Personality lives only in Qwen (Face model)
+- DeepSeek is task-focused, no persona
+- Fast routing eliminates LLM overhead
+- All models are replaceable
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v0.1 | Initial | 3-model architecture (Qwen + DeepSeek + Mistral router) |
+| v1.0 | Current | 2-model architecture, streaming, caching, highlighting |

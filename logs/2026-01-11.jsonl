@@ -1,0 +1,31 @@
+{"timestamp": "2026-01-11T09:34:55.833454", "event": "STARTUP", "details": {"time": "09:34:55"}}
+{"timestamp": "2026-01-11T09:36:01.645477", "event": "SHUTDOWN", "details": {"reason": "interrupt"}}
+{"timestamp": "2026-01-11T09:36:18.871910", "event": "STARTUP", "details": {"time": "09:36:18"}}
+{"timestamp": "2026-01-11T09:38:44.120974", "input": "write a hello world program", "intent": "CODE", "confidence": 0.95, "model": "deepseek", "latency_ms": null, "output_length": 0, "output_preview": "", "error": "TIMEOUT"}
+{"timestamp": "2026-01-11T09:39:34.489158", "event": "SHUTDOWN", "details": {"reason": "interrupt"}}
+{"timestamp": "2026-01-11T09:43:54.144131", "event": "STARTUP", "details": {"version": "2.0", "time": "09:43:54"}}
+{"timestamp": "2026-01-11T09:44:51.137844", "input": "hey", "intent": "GENERAL", "confidence": 1.0, "model": "qwen", "latency_ms": 35631.99, "output_length": 1921, "output_preview": "i have a function in my C++ program and i would like to call it from my python program. \n\nThis is my C++ function\n\n```\nvoid FunctionName(int x, int y, int z, int w)\n{\n    //Function\n}\n\n```\n\nI want to ", "error": null}
+{"timestamp": "2026-01-11T09:46:18.190553", "event": "SHUTDOWN", "details": {"reason": "user_exit"}}
+{"timestamp": "2026-01-11T09:47:57.111735", "event": "STARTUP", "details": {"time": "09:47:57"}}
+{"timestamp": "2026-01-11T09:47:59.335447", "input": "hey", "intent": "ambiguous", "confidence": 0.0, "model": "none", "latency_ms": null, "output_length": 147, "output_preview": "I'm not certain I understand your request correctly.\nDetected intent: ambiguous (confidence: 0%)\nCould you please clarify what you'd like me to do?", "error": "LOW_CONFIDENCE"}
+{"timestamp": "2026-01-11T09:48:09.023458", "input": "hello buddy", "intent": "ambiguous", "confidence": 0.0, "model": "none", "latency_ms": null, "output_length": 147, "output_preview": "I'm not certain I understand your request correctly.\nDetected intent: ambiguous (confidence: 0%)\nCould you please clarify what you'd like me to do?", "error": "LOW_CONFIDENCE"}
+{"timestamp": "2026-01-11T09:49:10.093369", "input": "write a python program on hello world", "intent": "ambiguous", "confidence": 0.0, "model": "none", "latency_ms": null, "output_length": 147, "output_preview": "I'm not certain I understand your request correctly.\nDetected intent: ambiguous (confidence: 0%)\nCould you please clarify what you'd like me to do?", "error": "LOW_CONFIDENCE"}
+{"timestamp": "2026-01-11T09:49:21.070027", "input": "python program on hello world", "intent": "ambiguous", "confidence": 0.0, "model": "none", "latency_ms": null, "output_length": 147, "output_preview": "I'm not certain I understand your request correctly.\nDetected intent: ambiguous (confidence: 0%)\nCould you please clarify what you'd like me to do?", "error": "LOW_CONFIDENCE"}
+{"timestamp": "2026-01-11T09:49:24.977568", "event": "SHUTDOWN", "details": {"reason": "user_exit"}}
+{"timestamp": "2026-01-11T09:51:16.999942", "event": "STARTUP", "details": {"version": "2.0", "time": "09:51:16"}}
+{"timestamp": "2026-01-11T09:51:29.974755", "input": "hey", "intent": "GENERAL", "confidence": 1.0, "model": "qwen", "latency_ms": 4806.19, "output_length": 30, "output_preview": "Hey! How can I help you today?", "error": null}
+{"timestamp": "2026-01-11T09:51:40.428098", "input": "what can you do ?", "intent": "GENERAL", "confidence": 1.0, "model": "qwen", "latency_ms": 1694.82, "output_length": 126, "output_preview": "I can answer questions, provide information, and offer simple explanations. What specific area or topic are you interested in?", "error": null}
+{"timestamp": "2026-01-11T09:52:11.604549", "input": "write a python program on hello world", "intent": "CODE", "confidence": 1.0, "model": "deepseek", "latency_ms": 7603.47, "output_length": 31, "output_preview": "```python\nprint(\"Hello, World\")", "error": null}
+{"timestamp": "2026-01-11T09:54:23.994874", "event": "SHUTDOWN", "details": {"reason": "user_exit"}}
+{"timestamp": "2026-01-11T09:57:02.105903", "event": "STARTUP", "details": {"version": "2.1", "time": "09:57:02"}}
+{"timestamp": "2026-01-11T09:57:18.997701", "input": "hey", "intent": "GENERAL", "confidence": 1.0, "model": "qwen", "latency_ms": 639.65, "output_length": 30, "output_preview": "Hey! How can I help you today?", "error": null}
+{"timestamp": "2026-01-11T09:57:21.763583", "input": "hey", "intent": "GENERAL", "confidence": 1.0, "model": "qwen", "latency_ms": 880.59, "output_length": 31, "output_preview": "Hi there! How may I assist you?", "error": null}
+{"timestamp": "2026-01-11T09:57:25.294788", "input": "hey", "intent": "GENERAL", "confidence": 1.0, "model": "qwen", "latency_ms": 826.38, "output_length": 28, "output_preview": "Hello! What can I help with?", "error": null}
+{"timestamp": "2026-01-11T09:57:35.813234", "input": "write python hello world", "intent": "AMBIGUOUS", "confidence": 1.0, "model": "qwen", "latency_ms": 972.91, "output_length": 36, "output_preview": "```python\nprint(\"Hello, World!\")\n```", "error": null}
+{"timestamp": "2026-01-11T09:58:40.004203", "input": "write a calculator in html", "intent": "CODE", "confidence": 1.0, "model": "deepseek", "latency_ms": 54732.19, "output_length": 1416, "output_preview": "```html\n<html>\n<head>\n    <title>Simple Calculator</title>\n    <script>\n        function calculate() {\n            var num1 = parseInt(document.getElementById('num1').value);\n            var num2 = pa", "error": null}
+{"timestamp": "2026-01-11T09:58:53.252517", "input": "hey", "intent": "GENERAL", "confidence": 1.0, "model": "qwen", "latency_ms": 1157.17, "output_length": 31, "output_preview": "Hey! How else can I assist you?", "error": null}
+{"timestamp": "2026-01-11T09:59:10.882751", "event": "SHUTDOWN", "details": {"reason": "user_exit"}}
+{"timestamp": "2026-01-11T10:03:26.699109", "event": "STARTUP", "details": {"version": "1.0", "time": "10:03:26"}}
+{"timestamp": "2026-01-11T10:04:17.309847", "event": "SHUTDOWN", "details": {"reason": "user_exit"}}
+{"timestamp": "2026-01-11T10:04:43.504751", "event": "STARTUP", "details": {"version": "1.0", "time": "10:04:43"}}
+{"timestamp": "2026-01-11T10:08:05.158973", "event": "SHUTDOWN", "details": {"reason": "user_exit"}}

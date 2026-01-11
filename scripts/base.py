@@ -1,154 +1,207 @@
-"""
-Shared base module for LLM inference.
-Provides common utilities and a unified interface for running models.
-"""
-
-import subprocess
+import time
+import requests
+import hashlib
+import json
+import sys
 from dataclasses import dataclass, field
-from functools import lru_cache
+from typing import Dict, List, Optional, Generator, Callable
 from pathlib import Path
-from typing import Optional
 
-ROOT = Path(__file__).resolve().parent.parent
-LLAMA_CLI = ROOT / "llama.cpp/build/bin/llama-cli"
+ROOT = Path(__file__).parent.parent
+
+# Simple in-memory cache for responses
+_response_cache: Dict[str, dict] = {}
+MAX_CACHE_SIZE = 50
 
 
 @dataclass
 class ModelConfig:
-    """Configuration for a model."""
-
     name: str
-    model_path: Path
-    context_size: int = 2048
-    threads: int = 8
-    max_tokens: int = 512
+    url: str
+    max_tokens: int = 256
     temperature: float = 0.7
-    top_p: float = 0.95
+    timeout: int = 60
+    stop: List[str] = field(default_factory=list)
+    top_p: float = 0.9
     repeat_penalty: float = 1.1
-    extra_args: list[str] = field(default_factory=list)
 
 
-# Pre-defined model configurations
-MODELS = {
-    "mistral": ModelConfig(
-        name="mistral",
-        model_path=ROOT / "models/mistral-7b-instruct-v0.2.Q5_K_M.gguf",
-        context_size=2048,
-        temperature=0.2,
-        extra_args=[
-            "--reverse-prompt", "}"
-        ],
+MODELS: Dict[str, ModelConfig] = {
+    "qwen": ModelConfig(
+        name="qwen",
+        url="http://127.0.0.1:8001/completion",
+        temperature=0.7,
+        max_tokens=256,
+        stop=["<|im_end|>", "<|im_start|>", "\n\nUser:", "\n\nHuman:"],
+        top_p=0.9,
+        repeat_penalty=1.1,
     ),
     "deepseek": ModelConfig(
         name="deepseek",
-        model_path=ROOT / "models/deepseek-coder-6.7b-instruct-q4_k_m.gguf",
-        context_size=4096,
-        max_tokens=1024,
-        temperature=0.2,
+        url="http://127.0.0.1:8002/completion",
+        temperature=0.2,  # Low temp for precise code
+        max_tokens=1024,  # Longer for code output
+        stop=["\n\nTask:", "\n\nOutput:", "```\n\n"],
+        top_p=0.95,
+        repeat_penalty=1.0,
     ),
-    "qwen": ModelConfig(
-        name="qwen",
-        model_path=ROOT / "models/qwen2.5-3b-instruct-q4_k_m.gguf",
-        context_size=4096,
-        max_tokens=1024,
-        temperature=0.7,
+    "mistral": ModelConfig(
+        name="mistral",
+        url="http://127.0.0.1:8003/completion",
+        temperature=0.3,
+        max_tokens=256,
+        stop=["</s>", "[INST]", "[/INST]"],
     ),
 }
 
 
-@lru_cache(maxsize=8)
-def load_file(path: Path) -> str:
-    """Load and cache a text file."""
-    return path.read_text().strip()
-
-
-def build_command(config: ModelConfig, prompt: str) -> list[str]:
-    """Build the llama-cli command with given config and prompt."""
-
-    if __debug__:
-        print(f"[DEBUG] Running model: {config.name} with prompt length {len(prompt)}")
-
-    cmd = [
-        str(LLAMA_CLI),
-        "-m", str(config.model_path),
-        "--prompt", prompt,
-        "--no-display-prompt",
-        "-c", str(config.context_size),
-        "-t", str(config.threads),
-        "-n", str(config.max_tokens), 
-        "--temp", str(config.temperature),
-        "--top-p", str(config.top_p),
-        "--repeat-penalty", str(config.repeat_penalty),
-        *config.extra_args,
-    ]
-    return cmd
-
-
-def run_inference(
-    config: ModelConfig,
-    prompt: str,
-    capture_output: bool = True,
-) -> subprocess.CompletedProcess:
-    """
-    Run inference with the given model config and prompt.
-    Hardened against timeouts, crashes, and invalid execution.
-    """
-
-    if not config.model_path.exists():
-        raise FileNotFoundError(f"[{config.name}] Model not found: {config.model_path}")
-
-    if not LLAMA_CLI.exists():
-        raise FileNotFoundError(f"llama-cli not found: {LLAMA_CLI}")
-
-    cmd = build_command(config, prompt)
-
+def model_health(model_name: str) -> bool:
+    cfg = MODELS[model_name]
+    health_url = cfg.url.replace("/completion", "/health")
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=capture_output,
-            text=True,
-            check=False,
-        )
-
-        # Non-zero exit - still returning something
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"[{config.name}] Non-zero exit ({result.returncode}). "
-                f"stderr: {result.stderr.strip()[:500]}"
-            )
-
-        return result
-
-    except OSError as e:
-        # Covers execution errors like permissions, binary failure, etc.
-        raise RuntimeError(
-            f"[{config.name}] Execution failure: {e}"
-        ) from e
+        r = requests.get(health_url, timeout=2)
+        return r.status_code == 200
+    except requests.RequestException:
+        return False
 
 
-def get_output(result: subprocess.CompletedProcess) -> str:
+def run_model(model_name: str, prompt: str) -> dict:
+    cfg = MODELS[model_name]
+
+    if not model_health(model_name):
+        return {
+            "model": model_name,
+            "output": "",
+            "latency_ms": None,
+            "error": "MODEL_OFFLINE",
+        }
+
+    payload = {
+        "prompt": prompt,
+        "n_predict": cfg.max_tokens,
+        "temperature": cfg.temperature,
+        "top_p": cfg.top_p,
+        "repeat_penalty": cfg.repeat_penalty,
+        "stop": cfg.stop,
+    }
+
+    start = time.perf_counter()
+    r = requests.post(cfg.url, json=payload, timeout=cfg.timeout)
+    latency = round((time.perf_counter() - start) * 1000, 2)
+
+    r.raise_for_status()
+    data = r.json()
+
+    return {
+        "model": model_name,
+        "output": data.get("content", "").strip(),
+        "latency_ms": latency,
+        "error": None,
+    }
+
+
+def _cache_key(model_name: str, prompt: str) -> str:
+    """Generate a cache key for a prompt."""
+    content = f"{model_name}:{prompt}"
+    return hashlib.md5(content.encode()).hexdigest()
+
+
+def get_cached(model_name: str, prompt: str) -> Optional[dict]:
+    """Get cached response if available."""
+    key = _cache_key(model_name, prompt)
+    return _response_cache.get(key)
+
+
+def set_cached(model_name: str, prompt: str, response: dict) -> None:
+    """Cache a response."""
+    global _response_cache
+    # Evict oldest entries if cache is full
+    if len(_response_cache) >= MAX_CACHE_SIZE:
+        # Remove first 10 entries (simple FIFO)
+        keys = list(_response_cache.keys())[:10]
+        for k in keys:
+            del _response_cache[k]
+    
+    key = _cache_key(model_name, prompt)
+    _response_cache[key] = response
+
+
+def clear_cache() -> int:
+    """Clear all cached responses. Returns count of cleared items."""
+    global _response_cache
+    count = len(_response_cache)
+    _response_cache = {}
+    return count
+
+
+def run_model_streaming(
+    model_name: str, 
+    prompt: str, 
+    on_token: Callable[[str], None]
+) -> dict:
     """
-    Extract clean output from a completed inference.
-    Prefers stdout, falls back to stderr.
+    Run model with streaming output.
+    Calls on_token(text) for each token received.
     """
-    output = (result.stdout or "").strip()
-    if output:
-        return output
+    cfg = MODELS[model_name]
 
-    return (result.stderr or "").strip()
+    if not model_health(model_name):
+        return {
+            "model": model_name,
+            "output": "",
+            "latency_ms": None,
+            "error": "MODEL_OFFLINE",
+        }
+
+    payload = {
+        "prompt": prompt,
+        "n_predict": cfg.max_tokens,
+        "temperature": cfg.temperature,
+        "top_p": cfg.top_p,
+        "repeat_penalty": cfg.repeat_penalty,
+        "stop": cfg.stop,
+        "stream": True,
+    }
+
+    start = time.perf_counter()
+    full_output = []
+    
+    try:
+        with requests.post(cfg.url, json=payload, timeout=cfg.timeout, stream=True) as r:
+            r.raise_for_status()
+            for line in r.iter_lines():
+                if line:
+                    line = line.decode('utf-8')
+                    if line.startswith('data: '):
+                        data = line[6:]
+                        if data.strip() == '[DONE]':
+                            break
+                        try:
+                            chunk = json.loads(data)
+                            token = chunk.get('content', '')
+                            if token:
+                                full_output.append(token)
+                                on_token(token)
+                        except json.JSONDecodeError:
+                            continue
+    except requests.RequestException as e:
+        return {
+            "model": model_name,
+            "output": "".join(full_output),
+            "latency_ms": None,
+            "error": str(e),
+        }
+
+    latency = round((time.perf_counter() - start) * 1000, 2)
+    
+    return {
+        "model": model_name,
+        "output": "".join(full_output).strip(),
+        "latency_ms": latency,
+        "error": None,
+    }
 
 
-def run_model(model_name: str, prompt: str) -> str:
-    """
-    High-level helper to run a model by name and return the output.
-
-    Args:
-        model_name: One of 'mistral', 'deepseek', 'qwen'
-        prompt: The prompt to send
-
-    Returns:
-        The model's text output
-    """
-    config = MODELS[model_name]
-    result = run_inference(config, prompt)
-    return get_output(result)
+def load_file(path: Path) -> str:
+    """Load text content from a file."""
+    return path.read_text().strip()

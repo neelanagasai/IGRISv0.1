@@ -1,17 +1,3 @@
-"""
-IGRIS Orchestrator - Optimized Two-Model Architecture
-
-Uses fast heuristic routing with two specialized models:
-- Qwen: General queries, conversation, explanations
-- DeepSeek: Code generation, debugging, technical tasks
-
-Features:
-- Streaming output (see responses as they generate)
-- Response caching (instant for repeated queries)
-- Syntax highlighting for code blocks
-- Conversation history for multi-turn context
-"""
-
 from datetime import datetime
 import requests
 
@@ -357,17 +343,17 @@ def main():
             
             if user_input == "/help":
                 print("""
-Commands:
-  /status   - Check model health
-  /stats    - Session statistics
-  /clear    - Clear conversation history
-  /cache    - Clear response cache
-  /stream   - Toggle streaming mode
-  /history  - Show conversation history
-  /reset    - Reset all (clear logs, cache, history)
-  /help     - Show this help
-  /quit     - Exit IGRIS
-""")
+                    Commands:
+                    /status   - Check model health
+                    /stats    - Session statistics
+                    /clear    - Clear conversation history
+                    /cache    - Clear response cache
+                    /stream   - Toggle streaming mode
+                    /history  - Show conversation history
+                    /reset    - Reset all (clear logs, cache, history)
+                    /help     - Show this help
+                    /quit     - Exit IGRIS
+                """)
                 continue
 
             response = orchestrate(user_input)
